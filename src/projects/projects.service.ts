@@ -1,52 +1,44 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Injectable()
 export class ProjectsService {
-  private projects: Project[] = [];
-  private nextId = 1;
+  constructor(
+    @InjectRepository(Project)
+    private readonly projectRepository: Repository<Project>,
+  ) {}
 
-  create(createProjectDto: CreateProjectDto): Project {
-    const project: Project = {
-      id: this.nextId++,
-      title: createProjectDto.title,
-      description: createProjectDto.description,
-      createdAt: new Date(),
-    };
-    this.projects.push(project);
-    return project;
+  async create(createProjectDto: CreateProjectDto): Promise<Project> {
+    const project = this.projectRepository.create(createProjectDto);
+    return await this.projectRepository.save(project);
   }
 
-  findAll(): Project[] {
-    return this.projects;
+  async findAll(): Promise<Project[]> {
+    return await this.projectRepository.find();
   }
 
-  findOne(id: number): Project {
-    const project = this.projects.find(p => p.id === id);
+  async findOne(id: number): Promise<Project> {
+    const project = await this.projectRepository.findOneBy({ id });
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found.`);
     }
     return project;
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto): Project {
-    const project = this.findOne(id);
-    if (updateProjectDto.title) {
-      project.title = updateProjectDto.title;
-    }
-    if (updateProjectDto.description) {
-      project.description = updateProjectDto.description;
-    }
-    return project;
+  async update(id: number, updateProjectDto: UpdateProjectDto): Promise<Project> {
+    const project = await this.findOne(id);
+    Object.assign(project, updateProjectDto);
+    return await this.projectRepository.save(project);
   }
 
-  remove(id: number): void {
-    const index = this.projects.findIndex(p => p.id === id);
-    if (index === -1) {
+  async remove(id: number): Promise<void> {
+    const result = await this.projectRepository.delete(id);
+    if (result.affected === 0) {
       throw new NotFoundException(`Project with ID ${id} not found.`);
     }
-    this.projects.splice(index, 1);
   }
 }

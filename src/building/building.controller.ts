@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { BuildingService } from './building.service';
 import { CreateBuildingDto } from './dto/create-building.dto';
 import { Building } from './entities/building.entity';
@@ -15,5 +15,16 @@ export class BuildingController {
   @Get()
   async findAll(): Promise<Building[]> {
     return this.buildingService.findAll();
+  }
+
+  @Post(':id/match-parcel')
+  async matchParcel(@Param('id') id: string): Promise<string> {
+    const buildingId = parseInt(id, 10);
+    return this.buildingService.matchBuildingToParcel(buildingId);
+  }
+
+  @Post('match-all-parcels')
+  async matchAllParcels(): Promise<string> {
+    return this.buildingService.matchAllBuildingsToParcels();
   }
 }

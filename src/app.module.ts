@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProjectsModule } from './projects/projects.module';
-import { Project } from './projects/entities/project.entity'; // Import the entity
+import { Building } from './building/entities/building.entity';
+import { Parcel } from './building/entities/parcel.entity';
+import { Permit } from './building/entities/permit.entity';
+import { BuildingModule } from './building/building.module';
 
 @Module({
   imports: [
@@ -9,14 +11,14 @@ import { Project } from './projects/entities/project.entity'; // Import the enti
       type: 'postgres',
       host: 'localhost',
       port: 5432,
-      username: 'lena',  //  your database username
-      password: 'Passcode', //  your password
-      database: 'project_crud_db',
-      entities: [Project],
-      synchronize: true, // only for development!
-      logging: true, // optional: shows SQL queries in console
+      username: 'postgres',   // postgres user
+      password: 'Passcode',   // postgres password
+      database: 'project_crud_db', // database name
+      entities: [Building, Parcel, Permit],
+      synchronize: true, // makes tables match entities automatically
+      logging: true,
     }),
-    ProjectsModule,
+    BuildingModule, // import Building module
   ],
 })
 export class AppModule {}

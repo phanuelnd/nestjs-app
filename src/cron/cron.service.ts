@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { IntellexGateway } from '../libs/gateways/intellex.gateway';
 import { BuildingService } from '../modules/building/building.service';
+import moment from 'moment';
 
 @Injectable()
 export class CronService {
@@ -17,12 +18,12 @@ export class CronService {
   //   timeZone: 'Africa/Cairo',
   // })
   @Cron('*/20 * * * * *') // Runs every second (for testing only)
-  async handleDailyTask() {
+  async handleDailyPermitsFetchingTask() {
     this.logger.debug('Running daily task...');
     // Call the provider to make the insertion
     const response = await this.intellexGateway.fetchNewPermits(
-      '2025-05-01',
-      '2025-05-31',
+      moment().format('YYYY-MM-DD'),
+      moment().subtract(1, 'days').format('YYYY-MM-DD'),
     );
     Logger.log(JSON.stringify(response));
     // Map api response and start inserting building into the database

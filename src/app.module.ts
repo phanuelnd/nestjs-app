@@ -6,6 +6,9 @@ import { Permit } from './modules/building/entities/permit.entity';
 import { BuildingModule } from './modules/building/building.module';
 import { IntellexGateway } from './libs/gateways/intellex.gateway';
 import * as process from 'process';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CronService } from './cron/cron.service';
+import { HttpModule, HttpService } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -21,7 +24,10 @@ import * as process from 'process';
       logging: true,
     }),
     BuildingModule, // import Building module
+    ScheduleModule.forRoot(),
+    HttpModule,
   ],
-  providers: [IntellexGateway],
+  providers: [IntellexGateway, CronService],
+  exports: [HttpModule],
 })
 export class AppModule {}

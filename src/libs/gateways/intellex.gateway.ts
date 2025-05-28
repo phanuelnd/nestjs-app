@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { HttpService } from '@nestjs/axios';
-import { Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import * as process from 'process';
 dotenv.config();
 
@@ -11,8 +11,10 @@ export interface HttpRequestConfig {
   headers?: object;
   httpsAgentOptions?: object;
   auth?: any;
-  method: 'post' | 'get | ';
+  method: 'post' | 'get' | 'put';
 }
+
+@Injectable()
 export class IntellexGateway {
   constructor(private readonly axiosService: HttpService) {}
 
@@ -24,7 +26,7 @@ export class IntellexGateway {
         'api-key': process.env.INTELLEX_API_KEY,
         'Content-Type': 'application/json',
       },
-      url: `${process.env.INTELLEX_API_URL}`,
+      url: requestConfig.url,
       data: requestConfig.data,
       method: requestConfig.method,
     };
@@ -52,17 +54,17 @@ export class IntellexGateway {
           error: (error) => {
             Logger.error(
               `${config.method} request on INTELLEX failed on ${config.url}`,
-              {
+              JSON.stringify({
                 params: config.params,
                 data: config.data,
                 method: config.method,
                 url: config.url,
                 errorMessage:
                   error.response?.data?.message ??
-                  error.response.message ??
+                  error.response?.message ??
                   error?.message,
                 errorData: error.response?.data,
-              },
+              }),
             );
             const response = error.response?.data
               ? {
@@ -82,6 +84,38 @@ export class IntellexGateway {
   }
 
   async fetchNewPermits(startDate: string, endDate: string): Promise<any> {
-    const url = '';
+    const url = `${process.env.INTELLEX_NEW_API_URL}?startDate=${startDate}&endDate=${endDate}`;
+    const result = await this.dispatchRequest({
+      method: 'get',
+      data: {},
+      url,
+    });
+    if (!result) {
+      Logger.error(`An error occurred during fetching new permits`, {
+        startDate,
+        endDate,
+        err: result,
+      });
+      throw new BadRequestException(`Fetching new permit failed ${result} `);
+    }
+    return result;
+  }
+
+  async fetchOldPermits(startDate: string, endDate: string): Promise<any> {
+    const url = `${process.env.INTELLEX_OLD_API_URL}?startDate=${startDate}&endDate=${endDate}`;
+    const result = await this.dispatchRequest({
+      method: 'get',
+      data: {},
+      url,
+    });
+    if (!result) {
+      Logger.error(`An error occurred during fetching old permits`, {
+        startDate,
+        endDate,
+        err: result,
+      });
+      throw new BadRequestException(`Fetching old permit failed ${result} `);
+    }
+    return result;
   }
 }

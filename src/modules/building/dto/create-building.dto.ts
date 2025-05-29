@@ -19,5 +19,5 @@ export class CreateBuildingDto {
 
   @IsOptional()
   @IsString()
-  status?: string = 'pending';
+  status?: string = 'planned';
 }

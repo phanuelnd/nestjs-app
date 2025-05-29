@@ -29,29 +29,37 @@ export class CronService implements OnModuleInit {
 
     const stateKey = 'dailyPermits';
     let lastProcessedDate = await this.cronStateService.getState(stateKey);
-    const today = moment().format('YYYY-MM-DD');
+    const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
 
-    // Initial processing (May 1-31, 2025)
+    // Initial processing (May 1-31, 2025) - only on first run
     if (!lastProcessedDate) {
       lastProcessedDate = moment('2025-05-01')
-        .add(5, 'days')
+        .add(30, 'days') // 30 days straight, supposing that we will deploy on May 31st
         .format('YYYY-MM-DD');
       await this.processDateRange('2025-05-01', lastProcessedDate, 'new');
       await this.cronStateService.setState(stateKey, lastProcessedDate);
+      
+      // If we're caught up to yesterday after initial processing, process yesterday too
+      if (moment(lastProcessedDate).isBefore(yesterday)) {
+        const nextDay = moment(lastProcessedDate).add(1, 'days').format('YYYY-MM-DD');
+        await this.processDateRange(nextDay, yesterday, 'new');
+        await this.cronStateService.setState(stateKey, yesterday);
+      }
+      return;
     }
 
-    // Process subsequent days
+    // Always process yesterday's permits (last 24 hours)
     const nextDate = moment(lastProcessedDate).add(1, 'days');
-    const yesterday = moment().subtract(1, 'days');
-
+    
     if (nextDate.isSameOrBefore(yesterday)) {
+      // Process all missing days up to yesterday
       const start = nextDate.format('YYYY-MM-DD');
-      const end = moment
-        .min(nextDate.add(4, 'days'), yesterday)
-        .format('YYYY-MM-DD');
-
-      await this.processDateRange(start, end, 'new');
-      await this.cronStateService.setState(stateKey, end);
+      await this.processDateRange(start, yesterday, 'new');
+      await this.cronStateService.setState(stateKey, yesterday);
+      
+      this.logger.log(`Processed permits from ${start} to ${yesterday}`);
+    } else {
+      this.logger.debug('No new permits to process - already up to date');
     }
   }
 
@@ -67,7 +75,7 @@ export class CronService implements OnModuleInit {
     const stateKey = 'oldPermits';
     let state = (await this.cronStateService.getState(stateKey)) || {
       currentStart: '2012-01-01',
-      batchSize: 5,
+      batchSize: 30, // 30 (1 month) days per batch
     };
 
     const batchEnd = moment(state.currentStart).add(state.batchSize, 'days');

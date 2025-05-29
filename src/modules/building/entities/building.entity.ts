@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Parcel } from './parcel.entity';
 import { Permit } from './permit.entity';
 import { Geometry } from 'geojson';
@@ -8,7 +14,7 @@ export class Building {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'uuid', default: () => 'gen_random_uuid()' })
+  @Column()
   building_id: string;
 
   @Column({

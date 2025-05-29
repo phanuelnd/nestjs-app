@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { IntellexGateway } from '../libs/gateways/intellex.gateway';
-import { BuildingService } from '../modules/building/building.service';
+// import { BuildingService } from '../modules/building/building.service';
 
 @Injectable()
 export class CronService {
@@ -9,7 +9,7 @@ export class CronService {
 
   constructor(
     private readonly intellexGateway: IntellexGateway,
-    private readonly buildingService: BuildingService,
+    // private readonly buildingService: BuildingService,
   ) {}
 
   // Runs daily at 12:00 AM (midnight)

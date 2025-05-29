@@ -49,7 +49,7 @@ export class IntellexGateway {
         })
         .subscribe({
           next: (response) => {
-            return resolve({ ...response.data, isErr: false });
+            return resolve(response.data);
           },
           error: (error) => {
             Logger.error(
@@ -85,7 +85,7 @@ export class IntellexGateway {
 
   async fetchNewPermits(startDate: string, endDate: string): Promise<any> {
     const url = `${process.env.INTELLEX_NEW_API_URL}?startDate=${startDate}&endDate=${endDate}`;
-    const result = await this.dispatchRequest({
+    const result: any = await this.dispatchRequest({
       method: 'get',
       data: {},
       url,

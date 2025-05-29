@@ -16,8 +16,15 @@ export class BuildingService {
   ) {}
 
   async create(createBuildingDto: CreateBuildingDto): Promise<Building> {
-    const building = this.buildingRepository.create(createBuildingDto);
-    return this.buildingRepository.save(building);
+    const building = await this.buildingRepository.findOne({
+      where: { building_id: createBuildingDto.building_id },
+    });
+    // To avoid many insertion for same building and avoiding unicity constraints on db which can made database crash
+    if (!building) {
+      const building = this.buildingRepository.create(createBuildingDto);
+      return this.buildingRepository.save(building);
+    }
+    return building;
   }
 
   async findAll(): Promise<Building[]> {
@@ -52,10 +59,10 @@ export class BuildingService {
   }
   async matchAllBuildingsToParcels(): Promise<string> {
     const buildings = await this.buildingRepository.find();
-  
+
     let matchedCount = 0;
     let unmatchedCount = 0;
-  
+
     for (const building of buildings) {
       const matchedParcel = await this.parcelRepository
         .createQueryBuilder('parcel')
@@ -63,7 +70,7 @@ export class BuildingService {
           footprint: JSON.stringify(building.footprint),
         })
         .getOne();
-  
+
       if (matchedParcel) {
         building.parcel = matchedParcel;
         await this.buildingRepository.save(building);
@@ -72,8 +79,7 @@ export class BuildingService {
         unmatchedCount++;
       }
     }
-  
+
     return `Matched ${matchedCount} buildings to parcels. ${unmatchedCount} buildings had no match.`;
   }
-  
 }

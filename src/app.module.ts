@@ -9,7 +9,9 @@ import * as process from 'process';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronService } from './cron/cron.service';
 import { HttpModule, HttpService } from '@nestjs/axios';
+import { BuildingService } from './modules/building/building.service';
 
+const entities = [Building];
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -27,7 +29,7 @@ import { HttpModule, HttpService } from '@nestjs/axios';
     ScheduleModule.forRoot(),
     HttpModule,
   ],
-  providers: [IntellexGateway, CronService],
+  providers: [],
   exports: [HttpModule],
 })
 export class AppModule {}

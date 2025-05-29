@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Building } from './entities/building.entity';
@@ -7,6 +7,7 @@ import { CreateBuildingDto } from './dto/create-building.dto';
 
 @Injectable()
 export class BuildingService {
+  private readonly logger = new Logger(BuildingService.name);
   constructor(
     @InjectRepository(Building)
     private readonly buildingRepository: Repository<Building>,
@@ -82,4 +83,20 @@ export class BuildingService {
 
     return `Matched ${matchedCount} buildings to parcels. ${unmatchedCount} buildings had no match.`;
   }
+
+async countByParcelId(parcelId: string): Promise<number> {
+  try {
+    const count = await this.buildingRepository
+      .createQueryBuilder('building')
+      .where('building.parcel_id = :parcelId', { parcelId })
+      .getCount();
+    
+    return count;
+  } catch (error) {
+    this.logger.error(`Error counting buildings for parcel ${parcelId}: ${error.message}`);
+    return 0;
+  }
 }
+}
+
+

@@ -128,24 +128,27 @@ export class CronService implements OnModuleInit {
     for (const permit of response) {
       try {
         if (type === 'new') {
-          const parcelOwners = permit['application_parcelOwners'];
-          const nbrOfParcels = parcelOwners.split(',').length;
-          const buildingIdComponents = permit['application_upi'].split('/');
-          const lastId = buildingIdComponents.pop();
-          buildingIdComponents.push(
-            (parseInt(lastId) + nbrOfParcels).toString(),
-          );
+            const parcelId = permit['application_upi'];
+            // Fetch count of existing buildings for this parcel_id
+            const existingCount = await this.buildingService.countByParcelId(parcelId);
+            const suffix = (existingCount + 1).toString().padStart(3, '0');
+            const buildingId = `${parcelId}/${suffix}`;
 
           await this.buildingService.create({
-            building_id: buildingIdComponents.join('/'),
-            parcel_id: permit['application_upi'],
+            building_id: buildingId,
+            parcel_id: parcelId,
             status: 'PLANNED',
             permit_id: permit['application_id'],
           });
         } else {
+            const parcelId = permit['Plot_No'];
+            // Fetch count of existing buildings for this parcel_id
+            const existingCount = await this.buildingService.countByParcelId(parcelId);
+            const suffix = (existingCount + 1).toString().padStart(3, '0');
+            const buildingId = `${parcelId}/${suffix}`;
           await this.buildingService.create({
-            building_id: permit['Plot_No'],
-            parcel_id: permit['Plot_No'],
+            building_id: buildingId,
+            parcel_id: parcelId,
             status: 'PLANNED',
             permit_id: permit['id'],
           });

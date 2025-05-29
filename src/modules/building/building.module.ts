@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { BuildingService } from './building.service';
-import { BuildingController } from './building.controller';
+// import { BuildingController } from './building.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Building } from './entities/building.entity';
-import { Parcel } from './entities/parcel.entity';
-import { Permit } from './entities/permit.entity';
+// import { Parcel } from './entities/parcel.entity';
+// import { Permit } from './entities/permit.entity';
 import { IntellexGateway } from '../../libs/gateways/intellex.gateway';
 import { CronService } from '../../cron/cron.service';
 import { HttpModule } from '@nestjs/axios';
@@ -15,7 +15,7 @@ import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Building, Parcel, Permit]),
+    TypeOrmModule.forFeature([Building]),
     HttpModule,
     CacheModule.register({
       store: redisStore,
@@ -23,7 +23,7 @@ import * as redisStore from 'cache-manager-redis-store';
       ttl: 0, // Items never expire
     }),
   ],
-  controllers: [BuildingController],
+  // controllers: [BuildingController],
   providers: [
     BuildingService,
     IntellexGateway,

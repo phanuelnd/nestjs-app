@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Building } from './modules/building/entities/building.entity';
-import { Parcel } from './modules/building/entities/parcel.entity';
-import { Permit } from './modules/building/entities/permit.entity';
+// import { Parcel } from './modules/building/entities/parcel.entity';
+// import { Permit } from './modules/building/entities/permit.entity';
 import { BuildingModule } from './modules/building/building.module';
 import { IntellexGateway } from './libs/gateways/intellex.gateway';
 import * as process from 'process';
@@ -21,9 +21,9 @@ const entities = [Building];
       username: process.env.DB_USERNAME, // postgres user
       password: process.env.DB_PASSWORD, // postgres password
       database: process.env.DB_NAME, // database name
-      entities: [Building, Parcel, Permit],
+      entities: [Building],
       synchronize: true, // TODO DO NOT MAKE true on PROD
-      logging: true,
+      logging: false, // Disable logging for production
     }),
     BuildingModule, // import Building module
     ScheduleModule.forRoot(),

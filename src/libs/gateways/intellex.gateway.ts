@@ -98,6 +98,13 @@ export class IntellexGateway {
       });
       throw new BadRequestException(`Fetching new permit failed ${result} `);
     }
+    //Log the result for debugging
+    Logger.log(`Fetched new permits`, {
+      startDate,
+      endDate,
+      count: result.length,
+    });
+    
     return result;
   }
 

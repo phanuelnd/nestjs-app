@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Building } from './entities/building.entity';
-import { Parcel } from './entities/parcel.entity';
 import { CreateBuildingDto } from './dto/create-building.dto';
 
 @Injectable()
@@ -12,8 +11,6 @@ export class BuildingService {
     @InjectRepository(Building)
     private readonly buildingRepository: Repository<Building>,
 
-    @InjectRepository(Parcel)
-    private readonly parcelRepository: Repository<Parcel>,
   ) {}
 
   async create(createBuildingDto: CreateBuildingDto): Promise<Building> {
@@ -32,57 +29,57 @@ export class BuildingService {
     return this.buildingRepository.find({ relations: ['parcel', 'permit'] });
   }
 
-  async matchBuildingToParcel(buildingId: number): Promise<string> {
-    const building = await this.buildingRepository.findOne({
-      where: { id: buildingId },
-    });
+  // async matchBuildingToParcel(buildingId: number): Promise<string> {
+  //   const building = await this.buildingRepository.findOne({
+  //     where: { id: buildingId },
+  //   });
 
-    if (!building) {
-      throw new Error('Building not found');
-    }
+  //   if (!building) {
+  //     throw new Error('Building not found');
+  //   }
 
-    const matchedParcel = await this.parcelRepository
-      .createQueryBuilder('parcel')
-      .where('ST_Within(ST_GeomFromGeoJSON(:footprint), parcel.boundary)', {
-        footprint: JSON.stringify(building.footprint),
-      })
-      .getOne();
+  //   const matchedParcel = await this.parcelRepository
+  //     .createQueryBuilder('parcel')
+  //     .where('ST_Within(ST_GeomFromGeoJSON(:footprint), parcel.boundary)', {
+  //       footprint: JSON.stringify(building.footprint),
+  //     })
+  //     .getOne();
 
-    if (!matchedParcel) {
-      throw new Error('No matching parcel found for this building');
-    }
+  //   if (!matchedParcel) {
+  //     throw new Error('No matching parcel found for this building');
+  //   }
 
-    // Update the Building's parcel_id
-    building.parcel = matchedParcel;
-    await this.buildingRepository.save(building);
+  //   // Update the Building's parcel_id
+  //   building.parcel = matchedParcel;
+  //   await this.buildingRepository.save(building);
 
-    return `Building matched to Parcel ID ${matchedParcel.id}`;
-  }
-  async matchAllBuildingsToParcels(): Promise<string> {
-    const buildings = await this.buildingRepository.find();
+  //   return `Building matched to Parcel ID ${matchedParcel.id}`;
+  // }
+  // async matchAllBuildingsToParcels(): Promise<string> {
+  //   const buildings = await this.buildingRepository.find();
 
-    let matchedCount = 0;
-    let unmatchedCount = 0;
+  //   let matchedCount = 0;
+  //   let unmatchedCount = 0;
 
-    for (const building of buildings) {
-      const matchedParcel = await this.parcelRepository
-        .createQueryBuilder('parcel')
-        .where('ST_Within(ST_GeomFromGeoJSON(:footprint), parcel.boundary)', {
-          footprint: JSON.stringify(building.footprint),
-        })
-        .getOne();
+  //   for (const building of buildings) {
+  //     const matchedParcel = await this.parcelRepository
+  //       .createQueryBuilder('parcel')
+  //       .where('ST_Within(ST_GeomFromGeoJSON(:footprint), parcel.boundary)', {
+  //         footprint: JSON.stringify(building.footprint),
+  //       })
+  //       .getOne();
 
-      if (matchedParcel) {
-        building.parcel = matchedParcel;
-        await this.buildingRepository.save(building);
-        matchedCount++;
-      } else {
-        unmatchedCount++;
-      }
-    }
+  //     if (matchedParcel) {
+  //       building.parcel = matchedParcel;
+  //       await this.buildingRepository.save(building);
+  //       matchedCount++;
+  //     } else {
+  //       unmatchedCount++;
+  //     }
+  //   }
 
-    return `Matched ${matchedCount} buildings to parcels. ${unmatchedCount} buildings had no match.`;
-  }
+  //   return `Matched ${matchedCount} buildings to parcels. ${unmatchedCount} buildings had no match.`;
+  // }
 
 async countByParcelId(parcelId: string): Promise<number> {
   try {

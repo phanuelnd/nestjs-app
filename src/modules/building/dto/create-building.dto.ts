@@ -10,7 +10,7 @@ export class CreateBuildingDto {
   footprint?: Geometry;
   
   @IsOptional()
-  @IsUUID()
+  @IsString()
   parcel_id?: string;
 
   @IsOptional()
@@ -19,5 +19,5 @@ export class CreateBuildingDto {
 
   @IsOptional()
   @IsString()
-  status?: string = 'planned';
+  status?: string = 'PLANNED';
 }

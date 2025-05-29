@@ -5,8 +5,8 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Parcel } from './parcel.entity';
-import { Permit } from './permit.entity';
+// import { Parcel } from './parcel.entity';
+// import { Permit } from './permit.entity';
 import { Geometry } from 'geojson';
 
 @Entity('buildings')
@@ -25,13 +25,11 @@ export class Building {
   })
   footprint: Geometry;
 
-  @ManyToOne(() => Parcel, { nullable: true })
-  @JoinColumn({ name: 'parcel_id' })
-  parcel: Parcel;
+  @Column({ nullable: true })
+  parcel_id: string;
 
-  @ManyToOne(() => Permit, { nullable: true })
-  @JoinColumn({ name: 'permit_id' })
-  permit: Permit;
+ @Column({ nullable: true })
+  permit_id: string;
 
   @Column({ default: 'pending' })
   status: string;

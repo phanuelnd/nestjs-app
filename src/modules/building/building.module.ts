@@ -12,6 +12,7 @@ import { CronStateService } from '../../cron/cron-state.service';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
+import { BuildingController } from './building.controller';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import * as redisStore from 'cache-manager-redis-store';
       ttl: 0, // Items never expire
     }),
   ],
-  // controllers: [BuildingController],
+  controllers: [BuildingController],
   providers: [
     BuildingService,
     IntellexGateway,

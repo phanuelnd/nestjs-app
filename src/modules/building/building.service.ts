@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Building } from './entities/building.entity';
 import { CreateBuildingDto } from './dto/create-building.dto';
+import { FindBuildingsQueryDto } from './building.controller';
 
 @Injectable()
 export class BuildingService {
@@ -94,6 +95,50 @@ async countByParcelId(parcelId: string): Promise<number> {
     return 0;
   }
 }
+async findOne(id: string | number): Promise<Building | null> {
+  const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+  if (isNaN(numericId)) {
+    throw new Error('Invalid ID');
+  }
+  return this.buildingRepository.findOne({
+    where: { id: numericId },
+    // relations: ['parcel', 'permit'], // Removed because relations do not exist
+  });
+}
+
+async findAllPaginated(query: FindBuildingsQueryDto): Promise<{ data: Building[]; total: number }> {
+  const {
+    page = 1,
+    limit = 20,
+    sortBy = 'id',
+    sortDirection = 'ASC',
+    search,
+    statusFilter,
+    parcelIdFilter,
+    permitIdFilter,
+    dateFrom,
+    dateTo,
+  } = query;
+
+  const qb = this.buildingRepository.createQueryBuilder('building');
+
+  if (search) {
+    qb.andWhere('building.building_id ILIKE :search', { search: `%${search}%` });
+  }
+  if (statusFilter) qb.andWhere('building.status = :status', { status: statusFilter });
+  if (parcelIdFilter) qb.andWhere('building.parcel_id = :parcelId', { parcelId: parcelIdFilter });
+  if (permitIdFilter) qb.andWhere('building.permit_id = :permitId', { permitId: permitIdFilter });
+  if (dateFrom) qb.andWhere('building.created_at >= :dateFrom', { dateFrom });
+  if (dateTo) qb.andWhere('building.created_at <= :dateTo', { dateTo });
+
+  qb.orderBy(`building.${sortBy}`, sortDirection)
+    .skip((page - 1) * limit)
+    .take(limit);
+
+  const [data, total] = await qb.getManyAndCount();
+  return { data, total };
+}
+
 }
 
 

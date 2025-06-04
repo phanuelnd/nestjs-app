@@ -63,8 +63,8 @@ export class CronService implements OnModuleInit {
     }
   }
 
-  // Runs hourly until old permits are completed
-  @Cron('0 * * * *') // Every hour
+  // Runs every minute until old permits are completed
+  @Cron('* * * * *') // Every minute
   async handleOldPermitsFetchingTask() {
     if (this.isOldPermitsCompleted) {
       this.logger.debug('Skipping old permits - already completed');
@@ -197,7 +197,7 @@ export class CronService implements OnModuleInit {
 //   }
 
 //   // TESTING: Runs every 5 minutes for local testing
-//   @Cron('*/5 * * * *') // Every 5 minutes
+//   @Cron('* 5 * * * *') // Every 5 minutes
 //   // PRODUCTION: Uncomment this line for production deployment
 //   // @Cron('0 0 * * *', { timeZone: 'Africa/Cairo' }) // Daily at midnight Cairo time
 //   async handleDailyNewPermitsFetchingTask() {
@@ -248,7 +248,7 @@ export class CronService implements OnModuleInit {
 //   }
 
 //   // TESTING: Runs every 2 minutes for local testing
-//   @Cron('*/1 * * * *') // Every 1 minutes
+//   @Cron('*1 * * * *') // Every 1 minutes
 //   // PRODUCTION: Uncomment this line for production deployment
 //   // @Cron('0 * * * *') // Every hour
 //   async handleOldPermitsFetchingTask() {
@@ -378,4 +378,4 @@ export class CronService implements OnModuleInit {
 
 //     this.logger.log(`Processed ${response.length} ${type} permits`);
 //   }
-// }
+// } */

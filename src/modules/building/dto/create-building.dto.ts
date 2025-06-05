@@ -1,5 +1,6 @@
 import { IsString, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
 import { Geometry } from 'geojson';
+import { Polygon } from 'geojson';
 
 // DTO for creating a building
 export class CreateBuildingDto {
@@ -12,7 +13,7 @@ export class CreateBuildingDto {
       status?: string;
 
       @IsOptional()
-      footprint?: Geometry;
+      footprint?: Polygon;
 
       @IsOptional()
       longitude?: number;

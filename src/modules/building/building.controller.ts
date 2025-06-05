@@ -1,6 +1,17 @@
-import { Controller, Get, Param, Query, NotFoundException } from '@nestjs/common';
+import { Controller, 
+  Get, 
+  Post,
+  Param, 
+  Query, 
+  NotFoundException,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException} from '@nestjs/common';
+
 import { BuildingService } from './building.service';
 import { Building } from './entities/building.entity';
+import { CsvProcessorService, ProcessingResult } from '../../services/csv-process/csv-processor.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 // Define a basic DTO for query parameters if you don't have one yet.
 // For a real app, this should be more robust and potentially in its own file.
@@ -19,7 +30,9 @@ export class FindBuildingsQueryDto {
 
 @Controller('buildings')
 export class BuildingController {
-  constructor(private readonly buildingService: BuildingService) {}
+  constructor(private readonly buildingService: BuildingService,
+              private readonly csvProcessorService: CsvProcessorService
+  ) {}
 
   @Get()
   async findAll(@Query() query: FindBuildingsQueryDto) {
@@ -35,4 +48,25 @@ export class BuildingController {
     }
     return building;
   }
+
+  @Post('import-csv')
+  @UseInterceptors(FileInterceptor('file'))
+  async importCsv(@UploadedFile() file: any): Promise<{ success: boolean; message: string; result: ProcessingResult }> {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    if (file.mimetype !== 'text/csv') {
+      throw new BadRequestException('File must be a CSV');
+    }
+
+    const csvContent = file.buffer.toString('utf-8');
+    const result = await this.csvProcessorService.processCsv(csvContent);
+
+    return {
+      success: true,
+      message: 'CSV processing completed',
+      result
+    };
 } 
+}

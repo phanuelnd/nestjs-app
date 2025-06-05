@@ -10,6 +10,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { BuildingController } from './building.controller';
+import { CsvProcessorService } from '../../services/csv-process/csv-processor.service';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { BuildingController } from './building.controller';
     CronService,
     BuildingService,
     CronStateService,
+    CsvProcessorService
   ],
 })
 export class BuildingModule {}

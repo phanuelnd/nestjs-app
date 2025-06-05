@@ -4,7 +4,7 @@ import {
   Column,
 } from 'typeorm';
 
-import { Geometry } from 'geojson';
+import { Polygon } from 'geojson';
 
 @Entity('buildings')
 export class Building {
@@ -17,8 +17,8 @@ export class Building {
       @Column({ default: 'pending' })
       status: string;
 
-      @Column({ type: 'geometry', nullable: true })
-      footprint: Geometry;
+      @Column({ type: 'geometry', spatialFeatureType: 'Polygon', srid: 4326 })
+      footprint: Polygon;
       
       @Column({ type: 'float', nullable: true })
       longitude: number;

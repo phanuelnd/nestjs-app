@@ -26,18 +26,20 @@ export class BuildingService {
     return building;
   }
 
-  async findAll(): Promise<Building[]> {
-    return this.buildingRepository.find({ relations: ['parcel', 'permit'] });
-  }
+ async findAll(): Promise<Building[]> {
+  return this.buildingRepository.find(); // Remove non-existent relations
+}
 
 async findOne(id: string | number): Promise<Building | null> {
   const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+  
   if (isNaN(numericId)) {
-    throw new Error('Invalid ID');
+    this.logger.warn(`Invalid ID provided: ${id}`);
+    return null; // Return null instead of throwing error
   }
+  
   return this.buildingRepository.findOne({
     where: { id: numericId },
-    // relations: ['parcel', 'permit'], // Removed because relations do not exist
   });
 }
 

@@ -83,7 +83,16 @@ export class IntellexGateway {
     });
   }
 
-  async fetchNewPermits(startDate: string, endDate: string): Promise<any> {
+  // This method fetches new buildings from the RSA API (it will change when we will agree with RSA on how to query the data)
+  /**
+   * Fetches new buildings from the Intellex API within the specified date range.
+   * @param startDate - The start date for fetching buildings in 'YYYY-MM-DD' format.
+   * @param endDate - The end date for fetching buildings in 'YYYY-MM-DD' format.
+   * @param location - The location to filter buildings (potentially).
+   * @returns A promise that resolves to the fetched buildings data.
+   * @throws BadRequestException if the request fails or returns an error.
+   */
+  async fetchBuildings(startDate: string, endDate: string): Promise<any> {
     const url = `${process.env.INTELLEX_NEW_API_URL}?startDate=${startDate}&endDate=${endDate}`;
     const result: any = await this.dispatchRequest({
       method: 'get',
@@ -108,21 +117,5 @@ export class IntellexGateway {
     return result;
   }
 
-  async fetchOldPermits(startDate: string, endDate: string): Promise<any> {
-    const url = `${process.env.INTELLEX_OLD_API_URL}?startDate=${startDate}&endDate=${endDate}`;
-    const result = await this.dispatchRequest({
-      method: 'get',
-      data: {},
-      url,
-    });
-    if (!result) {
-      Logger.error(`An error occurred during fetching old permits`, {
-        startDate,
-        endDate,
-        err: result,
-      });
-      throw new BadRequestException(`Fetching old permit failed ${result} `);
-    }
-    return result;
-  }
+
 }

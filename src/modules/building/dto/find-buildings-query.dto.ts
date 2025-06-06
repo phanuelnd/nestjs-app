@@ -9,4 +9,8 @@ export class FindBuildingsQueryDto {
   permitIdFilter?: string;
   dateFrom?: string;
   dateTo?: string;
+  statusFilters?: string[]; // for multiple status selection
+  province?: string;
+  district?: string;
+  sector?: string;
 } 

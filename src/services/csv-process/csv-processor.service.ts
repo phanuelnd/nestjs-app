@@ -22,59 +22,91 @@ export class CsvProcessorService {
         private readonly buildingRepository: Repository<Building>,
     ) {}
     
-    async processCsv(csvContent: string): Promise<ProcessingResult> {
-        
-        const result: ProcessingResult = {
-            total: 0,
-            inserted: 0,
-            skipped: 0,
-            errors: [],
-        };
+   async processCsv(csvContent: string, startFromRow: number = 1): Promise<ProcessingResult> {
+    const result: ProcessingResult = {
+        total: 0,
+        inserted: 0,
+        skipped: 0,
+        errors: [],
+    };
 
-        try {
-            const parsedData = Papa.parse(csvContent, {
-                header: true,
-                skipEmptyLines: true,
-            });
+    try {
+        const parsedData = Papa.parse(csvContent, {
+            header: true,
+            skipEmptyLines: true,
+        });
 
-            if (parsedData.errors.length) {
-                this.logger.error("CSV parsing errors", parsedData.errors);
-                result.errors.push(...parsedData.errors.map(err => err.message));
-                return result;
+        if (parsedData.errors.length) {
+            this.logger.error("CSV parsing errors", parsedData.errors);
+            result.errors.push(...parsedData.errors.map(err => err.message));
+            return result;
+        }
+
+        // Log resume info
+        if (startFromRow > 1) {
+            this.logger.log(`Resuming CSV processing from row ${startFromRow}`);
+        }
+
+        for (const [index, row] of parsedData.data.entries()) {
+            const currentRowNumber = index + 1;
+            
+            // Skip rows before startFromRow
+            if (currentRowNumber < startFromRow) {
+                result.skipped++;
+                continue;
             }
-
-            for (const [index, row] of parsedData.data.entries()) {
-                
-                try{
-                    const building = await this.createBuildingFromRow(row, index+1);
-                    if (building) {
-                        result.inserted++;
-                    } else {
-                        result.skipped++;
-                    }
-                }
-                catch (error) {
-                    this.logger.error(`Error processing row ${index + 1}: ${error.message}`);
-                    result.errors.push(`Row ${index + 1}: ${error.message}`);
+            
+            try {
+                const building = await this.createBuildingFromRow(row, currentRowNumber);
+                if (building) {
+                    result.inserted++;
+                } else {
                     result.skipped++;
                 }
-               
+                
+                // Log progress every 1000 rows
+                if (currentRowNumber % 1000 === 0) {
+                    this.logger.log(`Processed ${currentRowNumber} rows - Inserted: ${result.inserted}, Skipped: ${result.skipped}`);
+                }
             }
-            this.logger.log(`CSV processing complete: ${result.inserted} inserted, ${result.skipped} skipped`);
-            result.total = parsedData.data.length;
-            return result;
+            catch (error) {
+                this.logger.error(`Error processing row ${currentRowNumber}: ${error.message}`);
+                result.errors.push(`Row ${currentRowNumber}: ${error.message}`);
+                result.skipped++;
+            }
+        }
+        
+        this.logger.log(`CSV processing complete: ${result.inserted} inserted, ${result.skipped} skipped from ${startFromRow} to ${parsedData.data.length}`);
+        result.total = parsedData.data.length;
+        return result;
 
-        }
-        catch (error) {
-            this.logger.error("Error processing CSV", error);
-            result.errors.push(`CSV processing error: ${error.message}`);
-            return result;
-        }
+    }
+    catch (error) {
+        this.logger.error("Error processing CSV", error);
+        result.errors.push(`CSV processing error: ${error.message}`);
+        return result;
+    }
+}
+
+    private async checkDuplicateBuilding(lat: number, lng:number): Promise<boolean> {
+        const existingBuilding = await this.buildingRepository.findOne({ where: { 
+            latitude: lat,
+            longitude: lng 
+        } });
+        return !!existingBuilding; // Returns true if a building with the same coordinates exists
     }
 
     private async createBuildingFromRow(row: any, rowIndex: number): Promise<Building | null> {
         const buildingID = this.generateBuildingId(row, rowIndex);
         const existingBuilding = await this.buildingRepository.findOne({ where: { building_id: buildingID } });
+
+        // Check for duplicate building based on coordinates
+        const hasDuplicateCoordinates = await this.checkDuplicateBuilding(parseFloat(row.latitude), parseFloat(row.longitude));
+        if (hasDuplicateCoordinates) {
+            this.logger.warn(`Building with coordinates (${row.latitude}, ${row.longitude}) already exists, skipping row ${rowIndex}`);
+            return null; // Skip if coordinates already exist
+        }
+        
         if (existingBuilding) {
             this.logger.warn(`Building with ID ${buildingID} already exists, skipping row ${rowIndex}`);
             return null; // Skip if building already exists

@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { Building } from './entities/building.entity';
 import { CreateBuildingDto } from './dto/create-building.dto';
 import { FindBuildingsQueryDto } from './dto/find-buildings-query.dto';
-import { In } from 'typeorm';
+
 
 @Injectable()
 export class BuildingService {
@@ -46,6 +46,8 @@ async findOne(id: string | number): Promise<Building | null> {
 
 async getStatistics() {
   const total = await this.buildingRepository.count();
+
+
   const statusCounts = await this.buildingRepository.createQueryBuilder('building')
     .select('building.status', 'status')
     .addSelect('COUNT(*)', 'count')

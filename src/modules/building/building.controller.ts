@@ -62,7 +62,9 @@ export class BuildingController {
 
   @Post('import-csv')
   @UseInterceptors(FileInterceptor('file'))
-  async importCsv(@UploadedFile() file: any): Promise<{ success: boolean; message: string; result: ProcessingResult }> {
+  async importCsv(
+    @UploadedFile() file: any,
+    @Query('startFromRow') startFromRow?: string): Promise<{ success: boolean; message: string; result: ProcessingResult }> {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
@@ -72,7 +74,8 @@ export class BuildingController {
     }
 
     const csvContent = file.buffer.toString('utf-8');
-    const result = await this.csvProcessorService.processCsv(csvContent);
+    const startRow = startFromRow ? parseInt(startFromRow, 10) : 1;  // 👈 Parse the parameter
+    const result = await this.csvProcessorService.processCsv(csvContent, startRow);
 
     return {
       success: true,

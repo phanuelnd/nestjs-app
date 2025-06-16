@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  postgres_db:
+    image: postgis/postgis:16-3.4
+    container_name: buildings-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Passcode123!
+      POSTGRES_DB: building_registry
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build: .
+    container_name: buildings-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    depends_on:
+      - postgres_db
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

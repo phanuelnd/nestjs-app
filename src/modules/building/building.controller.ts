@@ -45,6 +45,14 @@ export class BuildingController {
     return this.buildingService.getBuildingByBuildingId(building_id);
   }
 
+  @Get('test-parcel-route')
+  async getBuildingsByParcelId(@Query('parcel_id') parcel_id: string) {
+    if (!parcel_id) {
+      throw new BadRequestException('parcel_id query parameter is required');
+    }
+    return this.buildingService.getBuildingsByParcelId(parcel_id);
+  }
+
   @Get()
   async findAll(@Query() query: FindBuildingsQueryDto) {
     return this.buildingService.findAllPaginated(query);

@@ -10,6 +10,10 @@ export class CreateBuildingDto {
 
       @IsString()
       @IsOptional()
+      parcel_id?: string;
+
+      @IsString()
+      @IsOptional()
       status?: string;
 
       @IsOptional()

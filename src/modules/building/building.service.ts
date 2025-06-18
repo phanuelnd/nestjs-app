@@ -68,6 +68,12 @@ async getBuildingByBuildingId(building_id: string) {
   });
 }
 
+async getBuildingsByParcelId(parcel_id: string): Promise<Building[]> {
+  return this.buildingRepository.find({
+    where: { parcel_id },
+  });
+}
+
 async getProvinces() {
   const provinces = await this.buildingRepository.createQueryBuilder('building')
     .select('DISTINCT building.province', 'province')

@@ -124,6 +124,7 @@ export class CsvProcessorService {
             cell: row.Cell || null,
             village: row.Village || null,
             data_source: 'GEOSPATIAL_FOOTPRINT_FROM_RSA',
+            parcel_id: row.upi || null,
         });
         try {
             return await this.buildingRepository.save(building);

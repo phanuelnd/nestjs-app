@@ -14,6 +14,9 @@ export class Building {
       @Column({ unique: true })
       building_id: string;
 
+      @Column({ type: 'varchar', length: 255, nullable: true })
+      parcel_id: string;
+
       @Column({ default: 'pending' })
       status: string;
 

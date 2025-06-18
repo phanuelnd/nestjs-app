@@ -31,23 +31,8 @@ export class BuildingService {
   return this.buildingRepository.find(); // Remove non-existent relations
 }
 
-async findOne(id: string | number): Promise<Building | null> {
-  const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-  
-  if (isNaN(numericId)) {
-    this.logger.warn(`Invalid ID provided: ${id}`);
-    return null; // Return null instead of throwing error
-  }
-  
-  return this.buildingRepository.findOne({
-    where: { id: numericId },
-  });
-}
-
 async getStatistics() {
   const total = await this.buildingRepository.count();
-
-
   const statusCounts = await this.buildingRepository.createQueryBuilder('building')
     .select('building.status', 'status')
     .addSelect('COUNT(*)', 'count')

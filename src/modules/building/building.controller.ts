@@ -45,7 +45,7 @@ export class BuildingController {
     return this.buildingService.getBuildingByBuildingId(building_id);
   }
 
-  @Get('test-parcel-route')
+  @Get('parcel')
   async getBuildingsByParcelId(@Query('parcel_id') parcel_id: string) {
     if (!parcel_id) {
       throw new BadRequestException('parcel_id query parameter is required');
@@ -56,16 +56,6 @@ export class BuildingController {
   @Get()
   async findAll(@Query() query: FindBuildingsQueryDto) {
     return this.buildingService.findAllPaginated(query);
-  }
-
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Building> {
-    const building = await this.buildingService.findOne(id); //  findOne in service takes PK
-
-    if (!building) {
-      throw new NotFoundException(`Building with ID ${id} not found`);
-    }
-    return building;
   }
 
   @Post('import-csv')

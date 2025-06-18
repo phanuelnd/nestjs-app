@@ -4,7 +4,7 @@ import { Polygon } from 'geojson';
 
 // DTO for creating a building
 export class CreateBuildingDto {
-      @IsUUID()
+      @IsString()
       @IsNotEmpty()
       building_id: string;
 

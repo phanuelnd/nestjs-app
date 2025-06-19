@@ -14,7 +14,7 @@ import { Building } from './entities/building.entity';
 import { CsvProcessorService, ProcessingResult } from '../../services/csv-process/csv-processor.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FindBuildingsQueryDto } from './dto/find-buildings-query.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 @Controller('buildings')
 export class BuildingController {

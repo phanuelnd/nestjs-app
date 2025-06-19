@@ -58,7 +58,7 @@ export class AuthService {
       where: { email: loginDto.email }
     });
 
-    if (!user || user.status !== UserStatus.ACTIVE) {
+    if (!user || (user.status !== UserStatus.ACTIVE && user.status !== UserStatus.PENDING)) {
       throw new UnauthorizedException('Invalid credentials or account not active');
     }
 
@@ -67,10 +67,17 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if( user.is_first_login) {
+        await this.userRepository.update(user.id, {
+            is_first_login: false,
+            status: UserStatus.ACTIVE,
+    });
+    }
+
     // Update last login
     await this.userRepository.update(user.id, { last_login_at: new Date() });
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { sub: user.id, email: user.email, role: user.role, status: user.status };
     const access_token = this.jwtService.sign(payload);
 
     const { password, ...userWithoutPassword } = user;
@@ -96,7 +103,8 @@ export class AuthService {
       updateData.status = UserStatus.ACTIVE;
     }
 
-    await this.userRepository.update(userId, updateData);
+    const { currentPassword, newPassword, confirmPassword, ...profileData } = updateData;
+    await this.userRepository.update(userId, profileData);
     
     const updatedUser = await this.userRepository.findOne({ where: { id: userId } });
 

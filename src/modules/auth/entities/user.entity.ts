@@ -7,15 +7,16 @@ import {
 } from 'typeorm';
 
 export enum UserRole {
-    SUPER_ADMIN = 'admin',
-    ADMIN = 'user',
+    SUPER_ADMIN = 'super_admin',
+    ADMIN = 'admin',
     VISITOR = 'visitor',
+
 }
 
 export enum UserStatus {
     ACTIVE = 'active',
     INACTIVE = 'inactive',
-    PENDING = 'banned',
+    PENDING = 'pending'
 }
 
 @Entity('users')

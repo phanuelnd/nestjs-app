@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Building } from "src/modules/building/entities/building.entity";
+import { Building } from "../../modules/building/entities/building.entity";
 import * as Papa from "papaparse";
 import wellknown from "wellknown";
 

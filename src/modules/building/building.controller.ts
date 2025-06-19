@@ -6,13 +6,15 @@ import { Controller,
   NotFoundException,
   UseInterceptors,
   UploadedFile,
-  BadRequestException} from '@nestjs/common';
+  BadRequestException,
+  UseGuards} from '@nestjs/common';
 
 import { BuildingService } from './building.service';
 import { Building } from './entities/building.entity';
 import { CsvProcessorService, ProcessingResult } from '../../services/csv-process/csv-processor.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FindBuildingsQueryDto } from './dto/find-buildings-query.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('buildings')
 export class BuildingController {
@@ -21,21 +23,25 @@ export class BuildingController {
   ) {}
 
   @Get('statistics')
+  @UseGuards(JwtAuthGuard)
   async getStatistics() {
     return this.buildingService.getStatistics();
   }
 
   @Get('provinces')
+  @UseGuards(JwtAuthGuard)
   async getProvinces() {
     return this.buildingService.getProvinces();
   }
 
   @Get('districts')
+  @UseGuards(JwtAuthGuard)
   async getDistricts(@Query('province') province?: string) {
     return this.buildingService.getDistricts(province);
   }
 
   @Get('sectors')
+  @UseGuards(JwtAuthGuard)
   async getSectors(@Query('district') district?: string) {
     return this.buildingService.getSectors(district);
   }
@@ -54,11 +60,13 @@ export class BuildingController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   async findAll(@Query() query: FindBuildingsQueryDto) {
     return this.buildingService.findAllPaginated(query);
   }
 
   @Post('import-csv')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async importCsv(
     @UploadedFile() file: any,

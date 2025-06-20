@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole, UserStatus } from '../modules/auth/entities/user.entity';
@@ -116,9 +116,10 @@ export class AuthService {
     return userWithoutPassword as User;
   }
 
-  async findAll(): Promise<Partial<User>[]> {
+  async findAll(currentUserId:number): Promise<Partial<User>[]> {
     const users = await this.userRepository.find({
-      select: ['id', 'email', 'first_name', 'last_name', 'role', 'status', 'last_login_at', 'created_at']
+      select: ['id', 'email', 'first_name', 'last_name', 'role', 'status', 'last_login_at', 'created_at'],
+        where: { id: Not(currentUserId) }, // Exclude the current user
     });
     
     return users;

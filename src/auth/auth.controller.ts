@@ -27,8 +27,8 @@ export class AuthController {
   @Get('users')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN)
-  async getAllUsers() {
-    return this.authService.findAll();
+  async getAllUsers(@Request () req) {
+    return this.authService.findAll(req.user.id);
   }
 
   @Put('profile')

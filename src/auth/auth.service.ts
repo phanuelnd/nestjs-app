@@ -120,6 +120,7 @@ export class AuthService {
     const users = await this.userRepository.find({
       select: ['id', 'email', 'first_name', 'last_name', 'role', 'status', 'last_login_at', 'created_at']
     });
+    
     return users;
   }
 

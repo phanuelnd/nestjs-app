@@ -14,8 +14,8 @@ export class SuperAdminSeeder {
   ) {}
 
   async seed(): Promise<void> {
-    const superAdminEmail = process.env.SUPER_ADMIN_EMAIL || 'superadmin@example.com';
-    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || 'SuperAdmin123!';
+    const superAdminEmail = process.env.SUPER_ADMIN_EMAIL || 'superadmin@mininfra.com';
+    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || '55_Cancri_e';
 
     // Check if super admin already exists
     const existingSuperAdmin = await this.userRepository.findOne({

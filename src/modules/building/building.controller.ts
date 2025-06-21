@@ -66,7 +66,7 @@ export class BuildingController {
   }
 
   @Post('import-csv')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async importCsv(
     @UploadedFile() file: any,

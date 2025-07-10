@@ -16,6 +16,9 @@ export class Building {
 
       @Column({ type: 'varchar', length: 255, nullable: true })
       parcel_id: string;
+      
+      @Column({ type: 'varchar', length: 255, nullable: true })
+      permit_id: string;
 
       @Column({ default: 'pending' })
       status: string;

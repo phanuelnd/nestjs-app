@@ -14,6 +14,10 @@ export class CreateBuildingDto {
 
       @IsString()
       @IsOptional()
+      permit_id?: string;
+
+      @IsString()
+      @IsOptional()
       status?: string;
 
       @IsOptional()

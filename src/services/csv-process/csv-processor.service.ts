@@ -23,6 +23,7 @@ export class CsvProcessorService {
     constructor(
         @InjectRepository(Building)
         private readonly buildingRepository: Repository<Building>,
+        private readonly intellexGateway: IntellexGateway, // Inject IntellexGateway to use its methods
     ) {}
     
    async processCsv(csvContent: string, startFromRow: number = 1): Promise<ProcessingResult> {
@@ -115,8 +116,8 @@ export class CsvProcessorService {
             return null; // Skip if building already exists
         }
         // Get building's permit ID using IntellexGateway api (sending the UPI)
-        const intellexGateway = new IntellexGateway();
-        const permitId = await intellexGateway.getPermitIdByUpi(row.upi);
+        
+        const permitId = await this.intellexGateway.getPermitIdByUpi(row.upi);
         
         
         const geometry = wellknown.parse(row.geo);
@@ -133,7 +134,7 @@ export class CsvProcessorService {
             village: row.Village || null,
             data_source: 'GEOSPATIAL_FOOTPRINT_FROM_RSA',
             parcel_id: row.upi || null,
-            permit_id: permitId || null, // Use the fetched permit ID
+            permit_id: permitId || undefined, // Use the fetched permit ID
         });
         try {
             return await this.buildingRepository.save(building);

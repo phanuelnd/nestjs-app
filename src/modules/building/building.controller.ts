@@ -50,6 +50,17 @@ export class BuildingController {
   async getBuildingByBuildingId(@Param('building_id') building_id: string) {
     return this.buildingService.getBuildingByBuildingId(building_id);
   }
+  // Get buildings by coordinates
+  @Get('coordinates')
+  async getBuildingsByCoordinates(
+    @Query('latitude') latitude: string,
+    @Query('longitude') longitude: string
+  ) {
+    if (!latitude || !longitude) {
+      throw new BadRequestException('Both latitude and longitude query parameters are required');
+    }
+    return this.buildingService.getBuildingsByCoordinates(latitude, longitude);
+  }
 
   @Get('parcel')
   async getBuildingsByParcelId(@Query('parcel_id') parcel_id: string) {

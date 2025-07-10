@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Building } from "../../modules/building/entities/building.entity";
+import { IntellexGateway } from "src/libs/gateways/intellex.gateway";
 import * as Papa from "papaparse";
 import wellknown from "wellknown";
 

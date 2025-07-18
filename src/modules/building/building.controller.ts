@@ -46,6 +46,33 @@ export class BuildingController {
     return this.buildingService.getSectors(district);
   }
 
+  @Get('coordinates')
+  async findBuildingByCoordinates(
+    @Query('latitude') latitude: string,
+    @Query('longitude') longitude: string,
+    @Query('tolerance') tolerance: string = '0.0001'
+  ): Promise<Building> {
+    if (!latitude || !longitude) {
+      throw new BadRequestException('Both latitude and longitude are required');
+    }
+
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    const tol = parseFloat(tolerance);
+
+    if (isNaN(lat) || isNaN(lng) || isNaN(tol)) {
+      throw new BadRequestException('Invalid coordinate or tolerance values');
+    }
+
+    const building = await this.buildingService.findByCoordinates(lat, lng, tol);
+    
+    if (!building) {
+      throw new NotFoundException('No building found at this location');
+    }
+
+    return building;
+  }
+
   @Get('building_id/:building_id')
   async getBuildingByBuildingId(@Param('building_id') building_id: string) {
     return this.buildingService.getBuildingByBuildingId(building_id);

@@ -9,3 +9,5 @@ export class SeederService {
     await this.superAdminSeeder.seed();
   }
 }
+
+// docker exec -e SUPER_ADMIN_EMAIL="superadmin@mininfra.com" -e SUPER_ADMIN_PASSWORD="23455!" -it buildings-backend pnpm run seed

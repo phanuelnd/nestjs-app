@@ -156,6 +156,19 @@ async findAllPaginated(query: FindBuildingsQueryDto): Promise<{ data: Building[]
   return { data, meta: { total, currentPage: page, totalPages } };
 }
 
+async findByCoordinates(latitude: number, longitude: number, tolerance: number): Promise<Building | null> {
+  return this.buildingRepository
+    .createQueryBuilder('building')
+    .where(
+      'ST_DWithin(building.footprint, ST_GeomFromText(:point, 4326), :tolerance)',
+      {
+        point: `POINT(${longitude} ${latitude})`,
+        tolerance
+      }
+    )
+    .getOne();
+}
+
 }
 
 

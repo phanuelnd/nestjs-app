@@ -86,7 +86,13 @@ export class BuildingController {
     if (!latitude || !longitude) {
       throw new BadRequestException('Both latitude and longitude query parameters are required');
     }
-    return this.buildingService.getBuildingsByCoordinates(latitude, longitude);
+    const building = await this.buildingService.getBuildingsByCoordinates(latitude, longitude);
+    
+    if (!building) {
+      throw new NotFoundException('No building found at this location');
+    }
+    
+    return building;
   }
 
   @Get('parcel')

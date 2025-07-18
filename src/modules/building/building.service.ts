@@ -4,6 +4,7 @@ import { Between, Repository } from 'typeorm';
 import { Building } from './entities/building.entity';
 import { CreateBuildingDto } from './dto/create-building.dto';
 import { FindBuildingsQueryDto } from './dto/find-buildings-query.dto';
+import { Raw } from 'typeorm';
 
 
 @Injectable()
@@ -84,6 +85,27 @@ async getSectors(district?: string) {
   if (district) qb.andWhere('building.district = :district', { district });
   const sectors = await qb.orderBy('sector', 'ASC').getRawMany();
   return sectors.map(s => s.sector).filter(Boolean);
+}
+
+
+async getBuildingsByCoordinates(latitude: string, longitude: string): Promise<Building[]> {
+  const lat = parseFloat(latitude);
+  const lon = parseFloat(longitude);
+
+  if (isNaN(lat) || isNaN(lon)) {
+    throw new Error('Invalid latitude or longitude');
+  }
+
+  // Radius in meters (e.g., 1000 = 1km)
+  const radius = 1000;
+
+  return this.buildingRepository.find({
+    where: {
+      footprint: Raw(
+        alias => `ST_DWithin(${alias}, ST_SetSRID(ST_MakePoint(${lon}, ${lat}), 4326)::geography, ${radius})`
+      )
+    }
+  });
 }
 
 async findAllPaginated(query: FindBuildingsQueryDto): Promise<{ data: Building[]; meta: { total: number; currentPage: number; totalPages: number } }> {

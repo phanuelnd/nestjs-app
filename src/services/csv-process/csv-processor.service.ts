@@ -2,8 +2,11 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Building } from "../../modules/building/entities/building.entity";
+import { IntellexGateway } from "src/libs/gateways/intellex.gateway";
 import * as Papa from "papaparse";
 import wellknown from "wellknown";
+
+
 
 
 export interface ProcessingResult {
@@ -20,6 +23,7 @@ export class CsvProcessorService {
     constructor(
         @InjectRepository(Building)
         private readonly buildingRepository: Repository<Building>,
+        private readonly intellexGateway: IntellexGateway, // Inject IntellexGateway to use its methods
     ) {}
     
    async processCsv(csvContent: string, startFromRow: number = 1): Promise<ProcessingResult> {
@@ -111,6 +115,11 @@ export class CsvProcessorService {
             this.logger.warn(`Building with ID ${buildingID} already exists, skipping row ${rowIndex}`);
             return null; // Skip if building already exists
         }
+        // Get building's permit ID using IntellexGateway api (sending the UPI)
+        
+        const permitId = await this.intellexGateway.getPermitIdByUpi(row.upi);
+        
+        
         const geometry = wellknown.parse(row.geo);
         const building = this.buildingRepository.create({
             building_id: buildingID,
@@ -125,6 +134,7 @@ export class CsvProcessorService {
             village: row.Village || null,
             data_source: 'GEOSPATIAL_FOOTPRINT_FROM_RSA',
             parcel_id: row.upi || null,
+            permit_id: permitId || undefined, // Use the fetched permit ID
         });
         try {
             return await this.buildingRepository.save(building);

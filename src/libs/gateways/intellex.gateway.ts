@@ -92,30 +92,78 @@ export class IntellexGateway {
    * @returns A promise that resolves to the fetched buildings data.
    * @throws BadRequestException if the request fails or returns an error.
    */
-  async fetchBuildings(startDate: string, endDate: string): Promise<any> {
-    const url = `${process.env.INTELLEX_NEW_API_URL}?startDate=${startDate}&endDate=${endDate}`;
-    const result: any = await this.dispatchRequest({
-      method: 'get',
-      data: {},
-      url,
-    });
-    if (!result) {
-      Logger.error(`An error occurred during fetching new permits`, {
-        startDate,
-        endDate,
-        err: result,
+  async getPermitIdByUpi(upi: string): Promise<string | null> {
+    // Try with the new API first
+    const newApiUrl = `${process.env.INTELLEX_NEW_API_URL}/permit?upi=${upi}`;
+    let result: any;
+    try {
+      result = await this.dispatchRequest({
+        method: 'get',
+        data: {},
+        url: newApiUrl,
       });
-      throw new BadRequestException(`Fetching new permit failed ${result} `);
+      if (result && result.permit_id) {
+        Logger.log(`Fetched permit ID from new API`, {
+          upi,
+          permitId: result.permit_id,
+        });
+        return result.permit_id;
+      }
+    } catch (err) {
+      Logger.warn(`Failed to fetch permit ID from new API`, { upi, err });
     }
-    //Log the result for debugging
-    Logger.log(`Fetched new permits`, {
-      startDate,
-      endDate,
-      count: result.length,
+
+    // If not found, try with the old API
+    const oldApiUrl = `${process.env.INTELLEX_OLD_API_URL}/permit?upi=${upi}`;
+    try {
+      result = await this.dispatchRequest({
+        method: 'get',
+        data: {},
+        url: oldApiUrl,
+      });
+      if (result && result.permit_id) {
+        Logger.log(`Fetched permit ID from old API`, {
+          upi,
+          permitId: result.permit_id,
+        });
+        return result.permit_id;
+      }
+    } catch (err) {
+      Logger.error(`Failed to fetch permit ID from old API`, { upi, err });
+    }
+
+    Logger.error(`An error occurred during fetching permit ID from both APIs`, {
+      upi,
     });
-    
-    return result;
+    throw new BadRequestException(`Fetching permit ID failed for UPI: ${upi}`);
   }
+
+
+
+  // async fetchBuildings(startDate: string, endDate: string): Promise<any> {
+  //   const url = `${process.env.INTELLEX_NEW_API_URL}?startDate=${startDate}&endDate=${endDate}`;
+  //   const result: any = await this.dispatchRequest({
+  //     method: 'get',
+  //     data: {},
+  //     url,
+  //   });
+  //   if (!result) {
+  //     Logger.error(`An error occurred during fetching new permits`, {
+  //       startDate,
+  //       endDate,
+  //       err: result,
+  //     });
+  //     throw new BadRequestException(`Fetching new permit failed ${result} `);
+  //   }
+  //   //Log the result for debugging
+  //   Logger.log(`Fetched new permits`, {
+  //     startDate,
+  //     endDate,
+  //     count: result.length,
+  //   });
+    
+  //   return result;
+  // }
 
 
 }

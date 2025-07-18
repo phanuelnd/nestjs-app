@@ -25,40 +25,43 @@ export class IntellexGateway {
       headers: {
         'api-key': process.env.INTELLEX_API_KEY,
         'Content-Type': 'application/json',
+        ...(requestConfig.headers || {}),
       },
       url: requestConfig.url,
-      data: requestConfig.data,
       method: requestConfig.method,
+      data: requestConfig.data,
+      params: requestConfig.params,
     };
 
     Logger.log(`SEND REQUEST TO INTELLEX`, {
-      params: config.params,
-      data: config.data,
       method: config.method,
       url: config.url,
+      params: config.params,
+      data: config.data,
     });
 
     return new Promise((resolve, reject): void => {
       this.axiosService
         .request({
-          headers: <any>config.headers,
           url: config.url,
-          data: config.data,
           method: config.method,
+          headers: config.headers,
+          data: config.data,
+          params: config.params,
           timeout: 60 * 1000,
         })
         .subscribe({
-          next: (response) => {
-            return resolve(response.data);
-          },
+          next: (response) => resolve(response.data),
           error: (error) => {
             Logger.error(
               `${config.method} request on INTELLEX failed on ${config.url}`,
               JSON.stringify({
-                params: config.params,
-                data: config.data,
                 method: config.method,
                 url: config.url,
+                params: config.params,
+                data: config.data,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
                 errorMessage:
                   error.response?.data?.message ??
                   error.response?.message ??
@@ -66,104 +69,116 @@ export class IntellexGateway {
                 errorData: error.response?.data,
               }),
             );
-            const response = error.response?.data
-              ? {
-                  statusCode: +error.response.data.statusCode,
-                  message: error.response.data.message,
-                  error: error.response.data.error,
-                }
-              : {
-                  statusCode: -1,
-                  message: [error.message],
-                  error: error.message,
-                };
-            reject({ ...response, isErr: true });
+            
+            // Create a consistent error structure
+            const errorResponse = {
+              statusCode: error.response?.status || -1,
+              message: error.response?.data?.message || error.message || 'Unknown error',
+              error: error.response?.data?.error || error.message || 'Request failed',
+              originalError: error,
+              isErr: true
+            };
+            
+            reject(errorResponse);
           },
         });
     });
   }
 
-  // This method fetches new buildings from the RSA API (it will change when we will agree with RSA on how to query the data)
   /**
-   * Fetches new buildings from the Intellex API within the specified date range.
-   * @param startDate - The start date for fetching buildings in 'YYYY-MM-DD' format.
-   * @param endDate - The end date for fetching buildings in 'YYYY-MM-DD' format.
-   * @param location - The location to filter buildings (potentially).
-   * @returns A promise that resolves to the fetched buildings data.
-   * @throws BadRequestException if the request fails or returns an error.
+   * Fetches permit ID by UPI from Intellex APIs.
+   * @param upi - The UPI to search for.
+   * @returns A promise that resolves to the permit ID or null if not found.
+   * @throws BadRequestException if both APIs fail with errors (not just "not found").
    */
   async getPermitIdByUpi(upi: string): Promise<string | null> {
+    if (!upi) {
+      throw new BadRequestException('UPI is required');
+    }
+
     // Try with the new API first
-    const newApiUrl = `${process.env.INTELLEX_NEW_API_URL}/permit?upi=${upi}`;
-    let result: any;
+    const newApiUrl = `${process.env.INTELLEX_NEW_API_URL}`;
     try {
-      result = await this.dispatchRequest({
+      const result = await this.dispatchRequest({
         method: 'get',
         data: {},
         url: newApiUrl,
+        params: { upi },
       });
-      if (result && result.permit_id) {
-        Logger.log(`Fetched permit ID from new API`, {
-          upi,
-          permitId: result.permit_id,
-        });
-        return result.permit_id;
+      
+      if (result && typeof result === 'object' && 'id' in result && result.id) {
+        const permitId = String(result.id).trim();
+        if (permitId) {
+          Logger.log(`Fetched permit ID from new API`, {
+            upi,
+            permitId: permitId,
+          });
+          return permitId;
+        }
       }
-    } catch (err) {
-      Logger.warn(`Failed to fetch permit ID from new API`, { upi, err });
+      
+      // If result exists but no permit_id, log it as "not found" rather than error
+      Logger.log(`No permit ID found in new API response`, { upi, result });
+      
+    } catch (err: any) {
+      const isNotFoundError = err.statusCode === 404 || 
+                             err.statusCode === 204 || 
+                             (err.statusCode >= 200 && err.statusCode < 300);
+      
+      if (isNotFoundError) {
+        Logger.log(`Permit ID not found in new API (non-error response)`, { upi, statusCode: err.statusCode });
+      } else {
+        Logger.error(`New API error for UPI ${upi}`, {
+          statusCode: err.statusCode,
+          message: err.message,
+          error: err.error
+        });
+      }
+      
+      // Continue to old API regardless of error type
     }
 
-    // If not found, try with the old API
-    const oldApiUrl = `${process.env.INTELLEX_OLD_API_URL}/permit?upi=${upi}`;
+    // Try with the old API
+    const oldApiUrl = `${process.env.INTELLEX_OLD_API_URL}`;
     try {
-      result = await this.dispatchRequest({
+      const result = await this.dispatchRequest({
         method: 'get',
         data: {},
         url: oldApiUrl,
+        params: { upi },
       });
-      if (result && result.permit_id) {
-        Logger.log(`Fetched permit ID from old API`, {
-          upi,
-          permitId: result.permit_id,
-        });
-        return result.permit_id;
+      
+      if (result && typeof result === 'object' && 'Permit_Number' in result && result.Permit_Number) {
+        const permitId = String(result.Permit_Number).trim();
+        if (permitId) {
+          Logger.log(`Fetched permit ID from old API`, {
+            upi,
+            permitId: permitId,
+          });
+          return permitId;
+        }
       }
-    } catch (err) {
-      Logger.error(`Failed to fetch permit ID from old API`, { upi, err });
+      
+      Logger.log(`No permit ID found in old API response`, { upi, result });
+      
+    } catch (err: any) {
+      const isNotFoundError = err.statusCode === 404 || 
+                             err.statusCode === 204 || 
+                             (err.statusCode >= 200 && err.statusCode < 300);
+      
+      if (isNotFoundError) {
+        Logger.log(`Permit ID not found in old API (non-error response)`, { upi, statusCode: err.statusCode });
+      } else {
+        Logger.error(`Old API error for UPI ${upi}`, {
+          statusCode: err.statusCode,
+          message: err.message,
+          error: err.error
+        });
+      }
     }
 
-    Logger.error(`An error occurred during fetching permit ID from both APIs`, {
-      upi,
-    });
-    throw new BadRequestException(`Fetching permit ID failed for UPI: ${upi}`);
+    // If we get here, permit ID was not found in either API
+    Logger.log(`Permit ID not found in either API`, { upi });
+    return null; // Return null instead of throwing exception for "not found"
   }
-
-
-
-  // async fetchBuildings(startDate: string, endDate: string): Promise<any> {
-  //   const url = `${process.env.INTELLEX_NEW_API_URL}?startDate=${startDate}&endDate=${endDate}`;
-  //   const result: any = await this.dispatchRequest({
-  //     method: 'get',
-  //     data: {},
-  //     url,
-  //   });
-  //   if (!result) {
-  //     Logger.error(`An error occurred during fetching new permits`, {
-  //       startDate,
-  //       endDate,
-  //       err: result,
-  //     });
-  //     throw new BadRequestException(`Fetching new permit failed ${result} `);
-  //   }
-  //   //Log the result for debugging
-  //   Logger.log(`Fetched new permits`, {
-  //     startDate,
-  //     endDate,
-  //     count: result.length,
-  //   });
-    
-  //   return result;
-  // }
-
-
 }

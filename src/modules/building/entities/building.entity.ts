@@ -20,11 +20,18 @@ export class Building {
       @Column({ type: 'varchar', length: 255, nullable: true })
       permit_id: string;
 
+      @Column({ type: 'varchar', length: 50, nullable: true })
+      permit_source: string;
+
+      @Column({ type: 'varchar', length: 50, nullable: true })
+      registered_usage: string;
+
       @Column({ default: 'pending' })
       status: string;
 
       @Column({ type: 'geometry', spatialFeatureType: 'Polygon', srid: 4326 })
       footprint: Polygon;
+
       
       @Column({ type: 'float', nullable: true })
       longitude: number;

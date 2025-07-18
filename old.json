@@ -1,0 +1,39 @@
+{
+  "message": "Success",
+  "data": [
+    {
+      "id": 1227,
+      "plan_id": "264617",
+      "Application_number": "BUG-BP-AAA001086",
+      "date_of_submission": "2020-08-18T00:00:00.000Z",
+      "date_of_response": "2020-09-09T00:00:00.000Z",
+      "days_taken": "22",
+      "Applicant": "mbanda jean Aimé",
+      "User_type": "Property Owners (can apply for category 1 and 2 Only)",
+      "Plot_No": "5/07/05/01/5486",
+      "Name_Of_Project": "CONSTRUCTION OF RESIDENTIAL HOUSE",
+      "Plot_size": "466",
+      "Built_up_area": "192",
+      "Number_of_Floors": "0",
+      "Capacity_Info": "no of bedrooms 4\n",
+      "category": "5",
+      "Building_Type": "Residential buildings",
+      "Developers_Name": "NIYONSHUTI EMMANUEL",
+      "DistrictName": "1",
+      "District": "BUGESERA",
+      "Registered_Usage": "Residential",
+      "ESTIMATED_COST_OF_PROJECT_RWF": "",
+      "Application_group": "1. NEW CONSTRUCTION PERMIT",
+      "Agency": "Bugesera District One Stop Center",
+      "Permit_Number": "BUG/BP/2017/684",
+      "Date_of_Issuance": "2020-09-09T00:00:00.000Z",
+      "Date_of_Expiry": "2022-09-09T00:00:00.000Z",
+      "InvoiceUpdated_at": "2022-02-18T00:00:00.000Z",
+      "Total_amount": "40000.0",
+      "Invoice_number": "INV-BUG-CP-00772",
+      "Payment_Status": "Paid",
+      "Approval_Status": "Approved",
+      "form_name": "BUGESERA DISTRICT NEW CONSTRUCTION PERMIT"
+    }
+  ]
+}

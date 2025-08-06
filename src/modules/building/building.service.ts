@@ -88,24 +88,44 @@ async getSectors(district?: string) {
 }
 
 
-async getBuildingsByCoordinates(latitude: string, longitude: string): Promise<Building[]> {
+async getBuildingsByCoordinates(latitude: string, longitude: string): Promise<Building | null> {
   const lat = parseFloat(latitude);
-  const lon = parseFloat(longitude);
-
-  if (isNaN(lat) || isNaN(lon)) {
-    throw new Error('Invalid latitude or longitude');
+  const lng = parseFloat(longitude);
+  
+  if (isNaN(lat) || isNaN(lng)) {
+    return null;
   }
 
-  // Radius in meters (e.g., 1000 = 1km)
-  const radius = 1000;
+  const point = `POINT(${lng} ${lat})`;
+  
+  // First attempt: Find building that exactly contains the clicked point
+  const exactMatch = await this.buildingRepository
+    .createQueryBuilder('building')
+    .where(
+      'ST_Contains(building.footprint, ST_GeomFromText(:point, 4326))',
+      { point }
+    )
+    .getOne();
 
-  return this.buildingRepository.find({
-    where: {
-      footprint: Raw(
-        alias => `ST_DWithin(${alias}, ST_SetSRID(ST_MakePoint(${lon}, ${lat}), 4326)::geography, ${radius})`
-      )
-    }
-  });
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  // Fallback: Find closest building within small tolerance, ordered by distance
+  const nearbyMatch = await this.buildingRepository
+    .createQueryBuilder('building')
+    .where(
+      'ST_DWithin(building.footprint, ST_GeomFromText(:point, 4326), :tolerance)',
+      { 
+        point,
+        tolerance: 0.0001 // Small tolerance for nearby search
+      }
+    )
+    .orderBy('ST_Distance(building.footprint, ST_GeomFromText(:point, 4326))', 'ASC')
+    .setParameter('point', point)
+    .getOne();
+
+  return nearbyMatch;
 }
 
 async findAllPaginated(query: FindBuildingsQueryDto): Promise<{ data: Building[]; meta: { total: number; currentPage: number; totalPages: number } }> {

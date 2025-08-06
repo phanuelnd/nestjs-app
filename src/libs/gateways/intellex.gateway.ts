@@ -13,6 +13,10 @@ export interface HttpRequestConfig {
   auth?: any;
   method: 'post' | 'get' | 'put';
 }
+interface PermitResult {
+  permitId: string;
+  source: 'New API' | 'Old API';
+}
 
 @Injectable()
 export class IntellexGateway {
@@ -91,7 +95,7 @@ export class IntellexGateway {
    * @returns A promise that resolves to the permit ID or null if not found.
    * @throws BadRequestException if both APIs fail with errors (not just "not found").
    */
-  async getPermitIdByUpi(upi: string): Promise<string | null> {
+  async getPermitIdByUpi(upi: string): Promise<PermitResult | null> {
     if (!upi) {
       throw new BadRequestException('UPI is required');
     }
@@ -113,7 +117,7 @@ export class IntellexGateway {
             upi,
             permitId: permitId,
           });
-          return permitId;
+          return { permitId, source: 'New API'} ;
         }
       }
       
@@ -148,14 +152,18 @@ export class IntellexGateway {
         params: { upi },
       });
       
-      if (result && typeof result === 'object' && 'Permit_Number' in result && result.Permit_Number) {
-        const permitId = String(result.Permit_Number).trim();
-        if (permitId) {
-          Logger.log(`Fetched permit ID from old API`, {
-            upi,
-            permitId: permitId,
-          });
-          return permitId;
+      if (result && typeof result === 'object' && 'data' in result && Array.isArray(result.data) && result.data.length > 0) {
+        // Check if the first item in the data array has Permit_Number
+        const firstRecord = result.data[0];
+        if (firstRecord && typeof firstRecord === 'object' && 'Permit_Number' in firstRecord && firstRecord.Permit_Number) {
+          const permitId = String(firstRecord.Permit_Number).trim();
+          if (permitId) {
+            Logger.log(`Fetched permit ID from old API`, {
+              upi,
+              permitId: permitId,
+            });
+            return { permitId, source: 'Old API' };
+          }
         }
       }
       

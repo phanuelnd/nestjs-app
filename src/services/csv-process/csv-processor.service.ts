@@ -2,12 +2,9 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Building } from "../../modules/building/entities/building.entity";
-import { IntellexGateway } from "src/libs/gateways/intellex.gateway";
+import { IntellexGateway } from "../../libs/gateways/intellex.gateway";
 import * as Papa from "papaparse";
 import wellknown from "wellknown";
-
-
-
 
 export interface ProcessingResult {
     total: number;
@@ -117,9 +114,10 @@ export class CsvProcessorService {
         }
         // Get building's permit ID using IntellexGateway api (sending the UPI)
         
-        const permitId = await this.intellexGateway.getPermitIdByUpi(row.upi);
-        
-        
+        const permitIdApiCallResult = await this.intellexGateway.getPermitIdByUpi(row.upi);
+        const permitId = permitIdApiCallResult ? permitIdApiCallResult.permitId : null;
+        const permitSource = permitIdApiCallResult ? permitIdApiCallResult.source : 'Unknown';
+
         const geometry = wellknown.parse(row.geo);
         const building = this.buildingRepository.create({
             building_id: buildingID,
@@ -135,6 +133,7 @@ export class CsvProcessorService {
             data_source: 'GEOSPATIAL_FOOTPRINT_FROM_RSA',
             parcel_id: row.upi || null,
             permit_id: permitId || undefined, // Use the fetched permit ID
+            permit_source: permitSource || undefined, // Use the fetched permit source
         });
         try {
             return await this.buildingRepository.save(building);
